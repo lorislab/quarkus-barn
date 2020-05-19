@@ -24,7 +24,7 @@ import java.util.List;
 @ConfigRoot(name = "barn", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public class BarnBuildTimeConfig {
 
-    private static final String DEFAULT_LOCATION = "db/migration";
+    private static final String DEFAULT_LOCATION = "db/migration/";
 
     public static final String DEFAULT_TEST_DATA_SCRIPTS = "-no-value-";
 

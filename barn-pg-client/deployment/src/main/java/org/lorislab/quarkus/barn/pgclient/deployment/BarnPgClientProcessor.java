@@ -39,7 +39,7 @@ public class BarnPgClientProcessor {
     }
 
     @BuildStep
-    ServiceStartBuildItem configureRuntimeProperties(PgPoolBuildItem pgPoolBuildItem, BuildProducer<BarnPoolBuildItem> pool) {
+    ServiceStartBuildItem configureRuntimeProperties(PgPoolBuildItem poolBuildItem, BuildProducer<BarnPoolBuildItem> pool) {
         pool.produce(new BarnPoolBuildItem(PgPool.class));
         return new ServiceStartBuildItem(BARN_PG_CLIENT);
     }

@@ -65,6 +65,11 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.lorislab.quarkus</groupId>
+                <artifactId>quarkus-testcontainers</artifactId>
+                <version>0.10.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

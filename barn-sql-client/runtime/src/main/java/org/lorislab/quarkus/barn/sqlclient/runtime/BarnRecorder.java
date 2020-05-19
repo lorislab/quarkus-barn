@@ -56,6 +56,7 @@ public class BarnRecorder {
         try {
             Pool client = container.instance(pool, Default.Literal.INSTANCE);
             BarnConfig barnConfig = BarnConfig.builder()
+                    .table(config.historyTable)
                     .afterMigrationScripts(afterMigrationScripts)
                     .versionedMigrations(versionedMigrations)
                     .repeatableMigrations(repeatableMigrations)

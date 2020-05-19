@@ -78,9 +78,6 @@ public class Database {
             return;
         }
 
-        // create lock number
-        long lockNum = LOCK_NUM + table.hashCode();
-
         // check table
         boolean te = checkMigrationTable();
         if (te) {

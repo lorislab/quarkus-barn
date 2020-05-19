@@ -81,8 +81,17 @@ public class BarnSqlClientProcessor {
     @BuildStep
     @Record(STATIC_INIT)
     void barnStaticInit(BarnRecorder recorder, BuildProducer<NativeImageResourceBuildItem> resource) throws IOException, URISyntaxException {
-        // add migration resources
-        List<Resource> resources = getMigrationFiles(config.location);
+        // location
+        String location = config.location;
+        if (location == null || location.isBlank()) {
+            throw new IllegalStateException("'barn.location' is empty!");
+        }
+        if (!location.endsWith("/")) {
+            location = location + "/";
+        }
+
+        // find migration resources
+        List<Resource> resources = getMigrationFiles(location);
         if (!resources.isEmpty()) {
             // native resource
             String[] paths = resources.stream().map(x -> x.script).toArray(String[]::new);
