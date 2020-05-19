@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>org.lorislab.quarkus</groupId>
-            <artifactId>barn-deployment</artifactId>
+            <artifactId>barn-sql-client-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -10,8 +10,8 @@
     <name>barn-parent</name>
     <packaging>pom</packaging>
 
-    <description>Quarkus reactive database migration</description>
-    <url>>https://github.com/lorislab/quarkus-reactive-db-migration</url>
+    <description>Quarkus barn is reactive database migration tool</description>
+    <url>>https://github.com/lorislab/quarkus-barn</url>
 
     <licenses>
         <license>
@@ -22,9 +22,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/lorislab/quarkus-reactive-db-migration.git</connection>
-        <developerConnection>scm:git:github.com:lorislab/quarkus-reactive-db-migration.git</developerConnection>
-        <url>https://github.com/lorislab/quarkus-reactive-db-migration</url>
+        <connection>scm:git:https://github.com/lorislab/quarkus-barn.git</connection>
+        <developerConnection>scm:git:github.com:lorislab/quarkus-barn.git</developerConnection>
+        <url>https://github.com/lorislab/quarkus-barn</url>
     </scm>
 
     <organization>
@@ -42,7 +42,9 @@
 
     <modules>
         <module>barn</module>
+        <module>barn-sql-client</module>
         <module>barn-pg-client</module>
+        <module>barn-mysql-client</module>
         <module>tests</module>
     </modules>
 
@@ -80,6 +82,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M4</version>
                     <configuration>
                         <systemProperties>
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>

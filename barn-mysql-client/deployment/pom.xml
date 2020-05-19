@@ -1,31 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.lorislab.quarkus</groupId>
-        <artifactId>barn-pg-client-parent</artifactId>
+        <artifactId>barn-mysql-client-parent</artifactId>
         <version>0.1.0-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>barn-pg-client</artifactId>
-    <name>barn-pg-client</name>
+    <artifactId>barn-mysql-client-deployment</artifactId>
+    <name>barn-mysql-client-deployment</name>
 
     <dependencies>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc-deployment</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.lorislab.quarkus</groupId>
-            <artifactId>barn-sql-client</artifactId>
+            <artifactId>barn-sql-client-deployment</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-reactive-mysql-client-deployment</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.lorislab.quarkus</groupId>
+            <artifactId>barn-mysql-client</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-bootstrap-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -38,10 +48,7 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.jboss.jandex</groupId>
-                <artifactId>jandex-maven-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
+
 </project>

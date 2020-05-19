@@ -3,14 +3,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.lorislab.quarkus</groupId>
-        <artifactId>barn-pg-client-parent</artifactId>
+        <artifactId>barn-mysql-client-parent</artifactId>
         <version>0.1.0-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>barn-pg-client</artifactId>
-    <name>barn-pg-client</name>
+    <artifactId>barn-mysql-client</artifactId>
+    <name>barn-mysql-client</name>
 
     <dependencies>
         <dependency>
