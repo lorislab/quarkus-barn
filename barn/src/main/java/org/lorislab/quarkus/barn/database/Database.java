@@ -8,21 +8,32 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Database {
+public abstract class Database {
 
     private static Logger log = LoggerFactory.getLogger(Database.class);
 
-    // b + a + r + n + d + b
-    private static final long LOCK_NUM = + (0x62L << 48) + (0x61L << 32) + (0x72L << 24) + (0x6E << 16) + (0x64 << 8) + 0x62;
+    protected final Pool client;
 
-    public final Pool client;
+    protected final String table;
 
-    public final String table;
+    private String currentUser;
 
     public Database(final String table, final Pool client) {
         this.client = client;
         this.table = table;
     }
+
+    protected abstract void cleanSchema();
+
+    protected abstract String historyTableSql();
+
+    protected abstract Boolean tryLock();
+
+    protected abstract void unlock();
+
+    protected abstract boolean checkMigrationTable();
+
+    protected abstract String getCurrentUser();
 
     public void testData(List<String> testDataScripts) {
         if (testDataScripts == null || testDataScripts.isEmpty()) {
@@ -58,19 +69,9 @@ public class Database {
         }
     }
 
-    protected String getCleanSQLResource() {
-        return "/barn/none/clean.sql";
-    }
-
     public void doClean() {
-        String resource = getCleanSQLResource();
-        String sql = ResourceLoader.loadResource(resource);
-        if (sql != null && !sql.isBlank()) {
-            log.info("Clean database");
-            queryAndAwait(sql);
-        } else {
-            log.warn("Clean database SQL resource {} is empty!", resource);
-        }
+        log.info("Clean database");
+        cleanSchema();
     }
 
     public void doMigration(List<VersionedMigration> versionedMigrations, List<Resource> repeatableMigrations) {
@@ -100,12 +101,14 @@ public class Database {
             // create lock
             lock();
 
+            currentUser = getCurrentUser();
+
             Migration latest = null;
             long id = 0;
 
             // check migration table
             if (!te && !checkMigrationTable()) {
-                createMigTable();
+                queryAndAwait(historyTableSql());
             } else {
                 // load last migration
                 id = 1 + lastId();
@@ -137,7 +140,11 @@ public class Database {
             log.info("Database version: {}", latest != null ? latest.version : null);
         } finally {
             // release lock
-            unlock();
+            try {
+                unlock();
+            } catch (Exception e) {
+                throw new IllegalStateException("Unable to release database lock", e);
+           }
         }
     }
 
@@ -165,7 +172,7 @@ public class Database {
                 log.info("Script {}", migration.script);
                 log.debug("----\n" + sql + "\n----");
                 long start = System.currentTimeMillis();
-                tx.queryAndAwait(sql);
+                queryAndAwait(tx, sql);
                 long time = System.currentTimeMillis() - start;
 
                 // insert or update executed migration
@@ -189,60 +196,36 @@ public class Database {
 
     protected void updateMigration(Transaction tx, Migration migration, Long time) {
         preparedQueryAndAwait(tx,
-                "UPDATE " + table + " SET checksum = $1, execution_time = $2 WHERE id=$3 RETURNING (id)",
-                Tuple.of(migration.checksum, time, migration.id));
+                "UPDATE " + table + " SET checksum = $1, execution_time = $2, installed_by = $3 WHERE id=$4",
+                Tuple.of(migration.checksum, time, currentUser, migration.id));
     }
 
 
     protected void insertMigration(Transaction tx, Migration migration, Long time) {
         preparedQueryAndAwait(tx,
                 "INSERT INTO " + table +
-                        " (id,version,description,type,script,checksum,execution_time,success)" +
-                        " VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING (id)"
+                        " (id,version,description,type,script,checksum,execution_time,success,installed_by)" +
+                        " VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)"
                 , Tuple.tuple(Arrays.asList(
                 migration.id, migration.version, migration.description, migration.type,
-                migration.script, migration.checksum, time, true
+                migration.script, migration.checksum, time, true, currentUser
                 ))
         );
     }
 
     protected void lock() {
         int retries = 0;
-        while (!lockValue()) {
+        while (!tryLock()) {
             try {
                 Thread.sleep(100L);
             } catch (InterruptedException e) {
-                throw new IllegalStateException("Interrupted PostgreSQL advisory lock", e);
+                throw new IllegalStateException("Interrupted lock", e);
             }
 
             if (++retries >= 50) {
-                throw new IllegalStateException("Number of retries exceeded while attempting to acquire PostgreSQL advisory lock");
+                throw new IllegalStateException("Number of retries exceeded while attempting to acquire lock");
             }
         }
-    }
-
-    protected Boolean lockValue() {
-        long lockNum = LOCK_NUM + table.hashCode();
-        RowIterator<Row> it = queryAndAwait("SELECT pg_try_advisory_lock(" + lockNum + ")").iterator();
-        return it.hasNext() ? it.next().getBoolean("pg_try_advisory_lock") : false;
-    }
-
-    protected void unlock() {
-        long lockNum = LOCK_NUM + table.hashCode();
-        queryAndAwait("SELECT pg_advisory_unlock(" + lockNum + ")");
-    }
-
-    protected boolean checkMigrationTable() {
-        RowIterator<Row> it = queryAndAwait("SELECT to_regclass('" + table + "')").iterator();
-        String tmp = it.hasNext() ? it.next().getString("to_regclass") : "----";
-        if (tmp == null || tmp.isBlank()) {
-            return false;
-        }
-        return table.toLowerCase().equals(tmp.toLowerCase());
-    }
-
-    private void createMigTable() {
-        queryAndAwait(historyTableSql());
     }
 
     protected Map<String, Migration> getAllRepeatableMigration() {
@@ -269,23 +252,6 @@ public class Database {
             return map(it.next());
         }
         return null;
-    }
-
-    protected String historyTableSql() {
-        return "CREATE TABLE " + table + " (\n" +
-                "    \"id\" INT NOT NULL,\n" +
-                "    \"version\" VARCHAR(50),\n" +
-                "    \"description\" VARCHAR(200) NOT NULL,\n" +
-                "    \"type\" VARCHAR(20) NOT NULL,\n" +
-                "    \"script\" VARCHAR(1000) NOT NULL,\n" +
-                "    \"checksum\" BIGINT,\n" +
-                "    \"installed_by\" TEXT NOT NULL DEFAULT CURRENT_USER,\n" +
-                "    \"installed_on\" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
-                "    \"execution_time\" BIGINT NOT NULL,\n" +
-                "    \"success\" BOOLEAN NOT NULL\n" +
-                ");\n" +
-                "ALTER TABLE " + table + " ADD CONSTRAINT \"" + table + "_pk\" PRIMARY KEY (\"id\");\n" +
-                "CREATE INDEX \"" + table + "_s_idx\" ON " + table + " (\"success\");";
     }
 
     protected Migration map(Row row) {
@@ -347,17 +313,17 @@ public class Database {
         return r;
     }
 
-    private void preparedQueryAndAwait(Transaction tx, String sql, io.vertx.mutiny.sqlclient.Tuple arguments) {
-        log.debug(sql);
+    protected void preparedQueryAndAwait(Transaction tx, String sql, io.vertx.mutiny.sqlclient.Tuple arguments) {
+        log.info("\n" + sql);
         tx.preparedQueryAndAwait(sql, arguments);
     }
 
-    private RowSet<Row> queryAndAwait(String sql) {
+    protected RowSet<Row> queryAndAwait(String sql) {
         return queryAndAwait(client, sql);
     }
 
     private static RowSet<Row> queryAndAwait(SqlClient client, String sql) {
-        log.debug(sql);
+        log.info("\n" + sql);
         return client.queryAndAwait(sql);
     }
 }

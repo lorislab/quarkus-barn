@@ -1,0 +1,24 @@
+version: "2"
+
+services:
+  barnmysql:
+    container_name: barnmysql
+    image: bitnami/mysql:8.0.20
+    environment:
+      MYSQL_ROOT_PASSWORD: "barnmysql"
+      MYSQL_DATABASE: "barnmysql"
+      MYSQL_USER: "barnmysql"
+      MYSQL_PASSWORD: "barnmysql"
+      DISABLE_WELCOME_MESSAGE: "true"
+    labels:
+      - "test.Wait.forLogMessage.regex=.*ready for connections.*\\s"
+      - "test.Wait.forLogMessage.times=1"
+      - "test.log=true"
+      - "test.property.quarkus.datasource.reactive.url=mysql://$${host:barnmysql}:$${port:barnmysql:3306}/barnmysql"
+    ports:
+      - "3306:3306"
+    networks:
+      - "test"
+
+networks:
+  test:

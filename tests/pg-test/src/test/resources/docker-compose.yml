@@ -1,20 +1,23 @@
 version: "2"
 
 services:
-  db:
-    container_name: db
+  pg:
+    container_name: pg
     image: bitnami/postgresql:12.2.0
     environment:
-      POSTGRES_DB: "db"
-      POSTGRES_USER: "db"
-      POSTGRES_PASSWORD: "db"
+      POSTGRES_DB: "pg"
+      POSTGRES_USER: "pg"
+      POSTGRES_PASSWORD: "pg"
       DISABLE_WELCOME_MESSAGE: "true"
     labels:
       - "test.Wait.forLogMessage.regex=.*database system is ready to accept connections.*\\s"
       - "test.Wait.forLogMessage.times=1"
       - "test.log=true"
-      - "test.property.quarkus.datasource.reactive.url=postgresql://$${host:db}:$${port:db:5432}/db?sslmode=disable"
+      - "test.property.quarkus.datasource.reactive.url=postgresql://$${host:pg}:$${port:pg:5432}/pg?sslmode=disable"
     ports:
       - "5432:5432"
     networks:
       - "test"
+
+networks:
+  test:

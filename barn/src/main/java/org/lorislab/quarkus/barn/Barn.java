@@ -26,11 +26,6 @@ import java.util.List;
 
 public class Barn {
 
-    public static final List<String> RESOURCES = new ArrayList<>() {{
-        addAll(PostgresDatabase.RESOURCES);
-        addAll(MySqlDatabase.RESOURCES);
-    }};
-
     private final Database database;
 
     private final BarnConfig config;

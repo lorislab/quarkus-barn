@@ -121,8 +121,6 @@ public class BarnSqlClientProcessor {
             resource.produce(new NativeImageResourceBuildItem(afterMigrationScripts.toArray(new String[0])));
         }
 
-        // add SQL files for native image
-        resource.produce(new NativeImageResourceBuildItem(Barn.RESOURCES));
     }
 
     private List<Resource> getMigrationFiles(String location) throws IOException, URISyntaxException {
