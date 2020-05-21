@@ -23,6 +23,20 @@ services:
       - "3306:3306"
     networks:
       - "test"
-
+  mysql-app:
+    container_name: mysql-app
+    image: mysql-test:latest
+    environment:
+      QUARKUS_DATASOURCE_USERNAME: "barnmysql"
+      QUARKUS_DATASOURCE_PASSWORD: "barnmysql"
+      QUARKUS_DATASOURCE_REACTIVE_URL: "mysql://barnmysql:3306/barnmysql?sslMode=DISABLED"
+    labels:
+      - "test.unit=false"
+      - "test.priority=101"
+      - "test.image.pull=DEFAULT"
+      - "test.Wait.forLogMessage.regex=.*Installed features.*\\s"
+      - "test.Wait.forLogMessage.times=1"
+    networks:
+      - test
 networks:
   test:

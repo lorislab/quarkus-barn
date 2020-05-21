@@ -12,6 +12,8 @@ import org.lorislab.quarkus.barn.database.Database;
 import org.lorislab.quarkus.barn.models.Migration;
 import org.lorislab.quarkus.testcontainers.DockerComposeTestResource;
 import org.lorislab.quarkus.testcontainers.QuarkusTestcontainers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +22,12 @@ import java.util.List;
 @QuarkusTestResource(DockerComposeTestResource.class)
 public abstract class AbstractTest {
 
+    protected static final Logger log = LoggerFactory.getLogger(AbstractTest.class);
+
     protected List<Migration> loadAllMigration(Pool client) {
-        return client.query("SELECT * FROM " + Barn.HISTORY_TABLE + " ORDER BY ID").execute()
+        String sql = "SELECT * FROM " + Barn.HISTORY_TABLE + " ORDER BY ID";
+        log.info("SQL:\n" + sql);
+        return client.query(sql).execute()
                 .map(rs -> {
                     List<Migration> list = new ArrayList<>(rs.size());
                     for (Row row : rs) {
@@ -39,8 +45,10 @@ public abstract class AbstractTest {
     }
 
     protected List<TestModel> loadAllTestModels(Pool client, String table) {
+        String sql = "SELECT * FROM " + table;
+        log.info("SQL:\n" + sql);
         List<TestModel> r = new ArrayList<>();
-        for (Row row : client.query("SELECT * FROM " + table).executeAndAwait()) {
+        for (Row row : client.query(sql).executeAndAwait()) {
             TestModel t = new TestModel();
             t.id = row.getLong("id");
             t.ref = row.getString("ref");

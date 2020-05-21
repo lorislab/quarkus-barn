@@ -18,23 +18,9 @@ package org.lorislab.quarkus.barn.models;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
 public class ResourceLoader {
-
-    public static List<Resource> createFrom(Set<String> resources) {
-        if (resources != null) {
-            return resources.stream().map(ResourceLoader::createFrom)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }
-        return Collections.emptyList();
-    }
 
     public static Resource createFrom(String item) {
         if (item == null) {
@@ -46,15 +32,10 @@ public class ResourceLoader {
         }
         int i1 = item.lastIndexOf("/");
 
-        long checksum = checksum(loadResourceContent(item));
-        if (checksum == 0) {
-            return null;
-        }
         Resource result = new Resource();
         result.script = item;
-        result.checksum = checksum;
 
-        String name = item.substring(i1+1, i2);
+        String name = item.substring(i1 + 1, i2);
         String prefix = name.substring(0, 1);
         if ("V".equals(prefix)) {
             result.repeatable = false;
@@ -72,11 +53,10 @@ public class ResourceLoader {
         } else {
             result.version = ver_desc[0];
         }
-
         return result;
     }
 
-    private static long checksum(byte[] value) {
+    public static long checksum(byte[] value) {
         if (value == null || value.length <= 0) {
             return 0;
         }
@@ -85,7 +65,7 @@ public class ResourceLoader {
         return crc.getValue();
     }
 
-    private static byte[] loadResourceContent(String script) {
+    public static byte[] loadResourceContent(String script) {
         try {
             String tmp = script;
             if (!tmp.startsWith("/")) {

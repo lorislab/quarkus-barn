@@ -1,15 +1,11 @@
 package org.lorislab.quarkus.barn.pgclient.test;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.vertx.mutiny.pgclient.PgPool;
 import io.vertx.mutiny.sqlclient.Pool;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
-import io.vertx.pgclient.PgConnectOptions;
-import io.vertx.sqlclient.PoolOptions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.lorislab.quarkus.barn.Barn;
 import org.lorislab.quarkus.barn.database.PostgresDatabase;
 import org.lorislab.quarkus.barn.models.Migration;
 
@@ -58,7 +54,9 @@ public class ApplicationTest extends AbstractTest {
             Assertions.assertEquals(3, models3.size());
 
             // check deleted table
-            RowIterator<Row> it = client.preparedQuery(PostgresDatabase.checkIfTableExistsQuery("todelete"))
+            String sql = PostgresDatabase.checkIfTableExistsQuery("todelete");
+            log.info("SQL:\n" + sql);
+            RowIterator<Row> it = client.preparedQuery(sql)
                     .executeAndAwait().iterator();
             Assertions.assertTrue(it.hasNext());
             Assertions.assertEquals(0, it.next().getInteger(0));

@@ -89,4 +89,9 @@ public class Version implements Comparable<Version> {
     private static Integer get(List<Integer> items, int i) {
         return i < items.size() ? items.get(i) : Integer.MIN_VALUE;
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

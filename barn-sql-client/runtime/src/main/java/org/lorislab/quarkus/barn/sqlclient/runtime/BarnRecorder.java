@@ -29,11 +29,11 @@ import java.util.List;
 @Recorder
 public class BarnRecorder {
 
-    private static List<VersionedMigration> versionedMigrations;
+    public static List<VersionedMigration> versionedMigrations;
 
-    private static List<Resource> repeatableMigrations;
+    public static List<Resource> repeatableMigrations;
 
-    private static List<String> afterMigrationScripts;
+    public static List<String> afterMigrationScripts;
 
     public void setRepeatableMigrations(List<Resource> repeatableMigrations) {
         BarnRecorder.repeatableMigrations = repeatableMigrations;
@@ -43,8 +43,8 @@ public class BarnRecorder {
         BarnRecorder.afterMigrationScripts = afterMigrationScripts;
     }
 
-    public void setVersionedMigrationResources(List<VersionedMigration> resources) {
-        BarnRecorder.versionedMigrations = resources;
+    public void setVersionedMigrations(List<VersionedMigration> versionedMigration) {
+        BarnRecorder.versionedMigrations = versionedMigration;
     }
 
     /**

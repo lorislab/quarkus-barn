@@ -29,7 +29,7 @@ public class Resource implements Comparable<Resource> {
 
     @Override
     public String toString() {
-        return "MigrationResource{" +
+        return "Resource{" +
                 "version='" + version + '\'' +
                 ", description='" + description + '\'' +
                 ", path='" + script + '\'' +

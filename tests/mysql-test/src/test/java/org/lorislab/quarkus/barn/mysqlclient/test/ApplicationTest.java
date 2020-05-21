@@ -54,7 +54,9 @@ public class ApplicationTest extends AbstractTest {
             Assertions.assertEquals(3, models3.size());
 
             // check deleted table
-            RowIterator<Row> it = client.preparedQuery(MySqlDatabase.checkIfTableExistsQuery("todelete"))
+            String sql = MySqlDatabase.checkIfTableExistsQuery("todelete");
+            log.info("SQL:\n" + sql);
+            RowIterator<Row> it = client.preparedQuery(sql)
                     .executeAndAwait().iterator();
             Assertions.assertTrue(it.hasNext());
             Assertions.assertEquals(0, it.next().getInteger(0));

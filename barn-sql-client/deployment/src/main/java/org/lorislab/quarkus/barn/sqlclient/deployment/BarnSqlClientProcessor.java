@@ -26,7 +26,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 
-import org.lorislab.quarkus.barn.Barn;
+
 import org.lorislab.quarkus.barn.models.Resource;
 import org.lorislab.quarkus.barn.models.ResourceLoader;
 import org.lorislab.quarkus.barn.models.VersionedMigration;
@@ -51,9 +51,9 @@ public class BarnSqlClientProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(BarnSqlClientProcessor.class);
 
-    private static final String JAR_APPLICATION_MIGRATIONS_PROTOCOL = "jar";
+    private static final String JAR_PROTOCOL = "jar";
 
-    private static final String FILE_APPLICATION_MIGRATIONS_PROTOCOL = "file";
+    private static final String FILE_PROTOCOL = "file";
 
     public static String BARN_CLIENT = "barn-sql-client";
 
@@ -65,13 +65,8 @@ public class BarnSqlClientProcessor {
     }
 
     @BuildStep
-    void build(BuildProducer<FeatureBuildItem> feature) {
-        feature.produce(new FeatureBuildItem(BARN_CLIENT));
-    }
-
-    @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
-    ServiceStartBuildItem barnRuntimeInit(BarnRecorder recorder, BarnRuntimeConfig runtimeConfig,
+    ServiceStartBuildItem configureRuntimeProperties(BarnRecorder recorder, BarnRuntimeConfig runtimeConfig,
                                           BarnPoolBuildItem poolBuildItem, BeanContainerBuildItem beanContainer) {
         BeanContainer container = beanContainer.getValue();
         recorder.doStartActions(poolBuildItem.getPool(), runtimeConfig, container);
@@ -80,14 +75,15 @@ public class BarnSqlClientProcessor {
 
     @BuildStep
     @Record(STATIC_INIT)
-    void barnStaticInit(BarnRecorder recorder, BuildProducer<NativeImageResourceBuildItem> resource) throws IOException, URISyntaxException {
+    void build(BuildProducer<FeatureBuildItem> feature, BarnRecorder recorder,
+                        BuildProducer<NativeImageResourceBuildItem> resource) throws IOException, URISyntaxException {
+
+        feature.produce(new FeatureBuildItem(BARN_CLIENT));
+
         // location
         String location = config.location;
         if (location == null || location.isBlank()) {
             throw new IllegalStateException("'barn.location' is empty!");
-        }
-        if (!location.endsWith("/")) {
-            location = location + "/";
         }
 
         // find migration resources
@@ -110,7 +106,7 @@ public class BarnSqlClientProcessor {
                     .filter(r -> !r.repeatable)
                     .map(VersionedMigration::new).sorted().collect(Collectors.toList());
             if (!migrations.isEmpty()) {
-                recorder.setVersionedMigrationResources(migrations);
+                recorder.setVersionedMigrations(migrations);
             }
         }
         // add imports
@@ -132,28 +128,42 @@ public class BarnSqlClientProcessor {
         while (migrations.hasMoreElements()) {
             URL path = migrations.nextElement();
             log.info("Adding application migrations in path '{}' using protocol '{}'", path.getPath(), path.getProtocol());
-            final Set<String> applicationMigrations;
-            if (JAR_APPLICATION_MIGRATIONS_PROTOCOL.equals(path.getProtocol())) {
+
+            if (JAR_PROTOCOL.equals(path.getProtocol())) {
                 try (final FileSystem fileSystem = initFileSystem(path.toURI())) {
-                    applicationMigrations = getApplicationMigrationsFromPath(location, path);
+                    result.addAll(getResources(location, path, JAR_PROTOCOL));
                 }
-            } else if (FILE_APPLICATION_MIGRATIONS_PROTOCOL.equals(path.getProtocol())) {
-                applicationMigrations = getApplicationMigrationsFromPath(location, path);
+            } else if (FILE_PROTOCOL.equals(path.getProtocol())) {
+                result.addAll(getResources(location, path, FILE_PROTOCOL));
             } else {
-                log.warn("Unsupported URL protocol '{}' for path '{}'. Migration files will not be discovered.",
-                        path.getProtocol(), path.getPath());
-                applicationMigrations = null;
+                log.warn("Unsupported URL protocol '{}' for path '{}'. Migration files will not be discovered.", path.getProtocol(), path.getPath());
             }
-            result.addAll(ResourceLoader.createFrom(applicationMigrations));
         }
         return result;
     }
 
-    private Set<String> getApplicationMigrationsFromPath(final String location, final URL path)
-            throws IOException, URISyntaxException {
+    private Set<Resource> getResources(final String location, final URL path, final String protocol) throws IOException, URISyntaxException {
         try (final Stream<Path> pathStream = Files.walk(Paths.get(path.toURI()))) {
-            return pathStream.filter(Files::isRegularFile)
-                    .map(it -> Paths.get(location, it.getFileName().toString()).toString())
+            return pathStream
+                    .filter(Files::isRegularFile)
+                    .filter(f -> f.toString().endsWith(".sql"))
+                    .map(it -> {
+                        String p = Paths.get(location, it.getFileName().toString()).toString();
+                        Resource r = ResourceLoader.createFrom(p);
+                        byte[] data;
+                        if (JAR_PROTOCOL.equals(protocol)) {
+                            try {
+                                data = Files.readAllBytes(it);
+                            } catch (IOException ex) {
+                                throw new IllegalStateException(ex);
+                            }
+                        } else {
+                            data = ResourceLoader.loadResourceContent(p);
+                        }
+                        r.checksum = ResourceLoader.checksum(data);
+                        return r;
+                    })
+                    .filter(r -> r.checksum > 0)
                     .peek(it -> log.debug("Discovered: " + it))
                     .collect(Collectors.toSet());
         }
