@@ -49,6 +49,13 @@ public class PostgresDatabase extends Database {
     }
 
     @Override
+    protected String getInsertMigrationSQL() {
+        return "INSERT INTO " + table +
+                " (id,version,description,type,script,checksum,execution_time,success,installed_by)" +
+                " VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)";
+    }
+
+    @Override
     protected String historyTableSql() {
         return "CREATE TABLE " + table + " (\n" +
                 "    \"id\" INT NOT NULL,\n" +

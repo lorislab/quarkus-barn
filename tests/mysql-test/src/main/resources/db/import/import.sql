@@ -1,2 +1,2 @@
-INSERT INTO test (ref) VALUES ('Test1');
-INSERT INTO test (ref) VALUES ('Test2');
+INSERT INTO TEST (ref) VALUES ('Test1');
+INSERT INTO TEST (ref) VALUES ('Test2');

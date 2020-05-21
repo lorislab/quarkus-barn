@@ -35,6 +35,8 @@ public abstract class Database {
 
     protected abstract String getCurrentUser();
 
+    protected abstract String getInsertMigrationSQL();
+
     public void testData(List<String> testDataScripts) {
         if (testDataScripts == null || testDataScripts.isEmpty()) {
             log.warn("Test data scripts is empty!");
@@ -53,7 +55,6 @@ public abstract class Database {
 
                     // execute SQL script
                     log.info("Script {}", resource);
-                    log.debug("----\n" + sql + "\n----");
                     queryAndAwait(tx, sql);
 
                     // commit
@@ -170,7 +171,6 @@ public abstract class Database {
 
                 // start migration
                 log.info("Script {}", migration.script);
-                log.debug("----\n" + sql + "\n----");
                 long start = System.currentTimeMillis();
                 queryAndAwait(tx, sql);
                 long time = System.currentTimeMillis() - start;
@@ -202,11 +202,7 @@ public abstract class Database {
 
 
     protected void insertMigration(Transaction tx, Migration migration, Long time) {
-        preparedQueryAndAwait(tx,
-                "INSERT INTO " + table +
-                        " (id,version,description,type,script,checksum,execution_time,success,installed_by)" +
-                        " VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)"
-                , Tuple.tuple(Arrays.asList(
+        preparedQueryAndAwait(tx, getInsertMigrationSQL(), Tuple.tuple(Arrays.asList(
                 migration.id, migration.version, migration.description, migration.type,
                 migration.script, migration.checksum, time, true, currentUser
                 ))
@@ -314,8 +310,8 @@ public abstract class Database {
     }
 
     protected void preparedQueryAndAwait(Transaction tx, String sql, io.vertx.mutiny.sqlclient.Tuple arguments) {
-        log.info("\n" + sql);
-        tx.preparedQueryAndAwait(sql, arguments);
+        log.debug("SQL:\n" + sql);
+        tx.preparedQuery(sql).executeAndAwait(arguments);
     }
 
     protected RowSet<Row> queryAndAwait(String sql) {
@@ -323,7 +319,7 @@ public abstract class Database {
     }
 
     private static RowSet<Row> queryAndAwait(SqlClient client, String sql) {
-        log.info("\n" + sql);
-        return client.queryAndAwait(sql);
+        log.debug("SQL:\n" + sql);
+        return client.query(sql).executeAndAwait();
     }
 }

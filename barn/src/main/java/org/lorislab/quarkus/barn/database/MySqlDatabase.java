@@ -86,6 +86,12 @@ public class MySqlDatabase extends Database {
         }
     }
 
+    protected String getInsertMigrationSQL() {
+        return "INSERT INTO " + table +
+                " (id,version,description,type,script,checksum,execution_time,success,installed_by)" +
+                " VALUES (?,?,?,?,?,?,?,?,?)";
+    }
+
     @Override
     protected String historyTableSql() {
         return "CREATE TABLE " + table + " (\n" +
@@ -94,7 +100,7 @@ public class MySqlDatabase extends Database {
                 "    `description` VARCHAR(200) NOT NULL,\n" +
                 "    `type` VARCHAR(20) NOT NULL,\n" +
                 "    `script` VARCHAR(1000) NOT NULL,\n" +
-                "    `checksum` INT,\n" +
+                "    `checksum` BIGINT,\n" +
                 "    `installed_by` VARCHAR(100) NOT NULL,\n" +
                 "    `installed_on` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
                 "    `execution_time` INT NOT NULL,\n" +
