@@ -4,6 +4,8 @@ services:
   pg:
     container_name: pg
     image: bitnami/postgresql:12.2.0
+    volumes:
+    - ./test.sql:/docker-entrypoint-initdb.d/test.sql
     environment:
       POSTGRES_DB: "pg"
       POSTGRES_USER: "pg"
@@ -13,6 +15,8 @@ services:
       - "test.Wait.forLogMessage.regex=.*database system is ready to accept connections.*\\s"
       - "test.Wait.forLogMessage.times=1"
       - "test.log=true"
+      - "test.property.quarkus.datasource.username=pg"
+      - "test.property.quarkus.datasource.password=pg"
       - "test.property.quarkus.datasource.reactive.url=postgresql://$${host:pg}:$${port:pg:5432}/pg?sslmode=disable"
     ports:
       - "5432:5432"

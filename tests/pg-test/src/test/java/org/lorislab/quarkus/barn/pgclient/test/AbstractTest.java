@@ -1,10 +1,79 @@
 package org.lorislab.quarkus.barn.pgclient.test;
 
 import io.quarkus.test.common.QuarkusTestResource;
+import io.vertx.mutiny.pgclient.PgPool;
+import io.vertx.mutiny.sqlclient.Pool;
+import io.vertx.mutiny.sqlclient.Row;
+import io.vertx.pgclient.PgConnectOptions;
+import io.vertx.sqlclient.PoolOptions;
+import org.junit.jupiter.api.Assertions;
+import org.lorislab.quarkus.barn.Barn;
+import org.lorislab.quarkus.barn.database.Database;
+import org.lorislab.quarkus.barn.models.Migration;
 import org.lorislab.quarkus.testcontainers.DockerComposeTestResource;
 import org.lorislab.quarkus.testcontainers.QuarkusTestcontainers;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @QuarkusTestcontainers
 @QuarkusTestResource(DockerComposeTestResource.class)
 public abstract class AbstractTest {
+
+    protected List<Migration> loadAllMigration(Pool client) {
+        return client.query("SELECT * FROM " + Barn.HISTORY_TABLE + " ORDER BY ID").execute()
+                .map(rs -> {
+                    List<Migration> list = new ArrayList<>(rs.size());
+                    for (Row row : rs) {
+                        list.add(Database.map(row));
+                    }
+                    return list;
+                }).await().indefinitely();
+    }
+
+    protected Pool createPool() {
+        PgConnectOptions pgConnectOptions = PgConnectOptions.fromUri(System.getProperty("quarkus.datasource.reactive.url"));
+        pgConnectOptions.setUser(System.getProperty("quarkus.datasource.username"));
+        pgConnectOptions.setPassword(System.getProperty("quarkus.datasource.password"));
+        return PgPool.pool(pgConnectOptions, new PoolOptions());
+    }
+
+    protected List<TestModel> loadAllTestModels(Pool client, String table) {
+        List<TestModel> r = new ArrayList<>();
+        for (Row row : client.query("SELECT * FROM " + table).executeAndAwait()) {
+            TestModel t = new TestModel();
+            t.id = row.getLong("id");
+            t.ref = row.getString("ref");
+            r.add(t);
+        }
+        return r;
+    }
+
+    protected static class TestModel {
+        public Long id;
+        String ref;
+    }
+
+    protected static void assertEquals(Migration e, Migration a) {
+        Assertions.assertEquals(e.id, a.id);
+        Assertions.assertEquals(e.version, a.version);
+        Assertions.assertEquals(e.description, a.description);
+        Assertions.assertEquals(e.type, a.type);
+        Assertions.assertEquals(e.script, a.script);
+        Assertions.assertEquals(e.checksum, a.checksum);
+        Assertions.assertEquals(e.installedBy, a.installedBy);
+    }
+
+    protected static Migration create(Long id, String version, String description, String script, long checksum) {
+        Migration r = new Migration();
+        r.exists = true;
+        r.id = id;
+        r.version = version;
+        r.description = description;
+        r.type = "SQL";
+        r.script = script;
+        r.checksum = checksum;
+        r.installedBy = "pg";
+        return r;
+    }
 }

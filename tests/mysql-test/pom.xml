@@ -12,6 +12,10 @@
     <artifactId>barn-mysql-test</artifactId>
     <name>barn-mysql-test</name>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.lorislab.quarkus</groupId>

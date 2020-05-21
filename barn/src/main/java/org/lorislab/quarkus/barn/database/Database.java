@@ -250,7 +250,7 @@ public abstract class Database {
         return null;
     }
 
-    protected Migration map(Row row) {
+    public static Migration map(Row row) {
         Migration m = new Migration();
         m.exists = true;
         m.id = row.getLong("id");

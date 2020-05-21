@@ -29,12 +29,14 @@ public class MySqlDatabase extends Database {
 
     @Override
     protected boolean checkMigrationTable() {
-        RowIterator<Row> it = queryAndAwait(
-                "SELECT count(*) FROM information_schema.tables" +
-                    " WHERE table_schema = DATABASE() AND table_name='" + table + "' LIMIT 1")
-                .iterator();
+        RowIterator<Row> it = queryAndAwait(checkIfTableExistsQuery(table)).iterator();
         int tmp = it.hasNext() ? it.next().getInteger(0) : 0;
         return tmp > 0;
+    }
+
+    public static String checkIfTableExistsQuery(String table) {
+        return  "SELECT count(*) FROM information_schema.tables" +
+                " WHERE table_schema = DATABASE() AND table_name='" + table + "' LIMIT 1";
     }
 
     @Override
@@ -50,7 +52,9 @@ public class MySqlDatabase extends Database {
     }
 
     private String sc(String name) {
-        return "QUOTE(DATABASE()).'" + name + "')";
+        // "QUOTE(DATABASE()).'" + name + "'"
+        return name;
+
     }
 
     @Override

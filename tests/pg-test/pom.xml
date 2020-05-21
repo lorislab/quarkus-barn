@@ -12,6 +12,10 @@
     <artifactId>barn-pg-test</artifactId>
     <name>barn-pg-test</name>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.lorislab.quarkus</groupId>

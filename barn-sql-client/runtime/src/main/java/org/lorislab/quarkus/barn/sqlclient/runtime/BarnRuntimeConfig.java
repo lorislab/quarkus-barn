@@ -18,6 +18,7 @@ package org.lorislab.quarkus.barn.sqlclient.runtime;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
+import org.lorislab.quarkus.barn.Barn;
 
 @ConfigRoot(name = "barn", phase = ConfigPhase.RUN_TIME)
 public class BarnRuntimeConfig {
@@ -56,6 +57,6 @@ public class BarnRuntimeConfig {
     /**
      * Migration table
      */
-    @ConfigItem(defaultValue = "barn_history")
+    @ConfigItem(defaultValue = Barn.HISTORY_TABLE)
     public String historyTable;
 }

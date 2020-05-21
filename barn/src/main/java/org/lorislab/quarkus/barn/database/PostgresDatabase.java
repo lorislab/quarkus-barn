@@ -29,12 +29,13 @@ public class PostgresDatabase extends Database {
     }
 
     protected boolean checkMigrationTable() {
-        RowIterator<Row> it = queryAndAwait("SELECT to_regclass('" + table + "')").iterator();
-        String tmp = it.hasNext() ? it.next().getString("to_regclass") : "----";
-        if (tmp == null || tmp.isBlank()) {
-            return false;
-        }
-        return table.toLowerCase().equals(tmp.toLowerCase());
+        RowIterator<Row> it = queryAndAwait(checkIfTableExistsQuery( table)).iterator();
+        int tmp = it.hasNext() ? it.next().getInteger(0) : 0;
+        return tmp > 0;
+    }
+
+    public static String checkIfTableExistsQuery(String table) {
+        return  "SELECT count(to_regclass('" + table + "'))";
     }
 
     @Override
@@ -74,7 +75,7 @@ public class PostgresDatabase extends Database {
     }
 
     private String sc(String value) {
-        return "quote_ident(current_schema()).'" + value + "'";
+        return value;
     }
 
     public void cleanSchema() {

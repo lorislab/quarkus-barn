@@ -21,10 +21,9 @@ import org.lorislab.quarkus.barn.database.MySqlDatabase;
 import org.lorislab.quarkus.barn.database.PostgresDatabase;
 import org.lorislab.quarkus.barn.models.Migration;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Barn {
+
+    public static final String HISTORY_TABLE = "barn_history";
 
     private final Database database;
 

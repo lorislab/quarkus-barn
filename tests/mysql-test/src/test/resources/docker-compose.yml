@@ -4,6 +4,8 @@ services:
   barnmysql:
     container_name: barnmysql
     image: bitnami/mysql:8.0.20
+    volumes:
+      - ./test.sql:/docker-entrypoint-initdb.d/test.sql
     environment:
       MYSQL_ROOT_PASSWORD: "barnmysql"
       MYSQL_DATABASE: "barnmysql"
@@ -14,6 +16,8 @@ services:
       - "test.Wait.forLogMessage.regex=.*ready for connections.*\\s"
       - "test.Wait.forLogMessage.times=1"
       - "test.log=true"
+      - "test.property.quarkus.datasource.username=barnmysql"
+      - "test.property.quarkus.datasource.password=barnmysql"
       - "test.property.quarkus.datasource.reactive.url=mysql://$${host:barnmysql}:$${port:barnmysql:3306}/barnmysql"
     ports:
       - "3306:3306"
