@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Test
       - name: GraalVM
         run: |
           mkdir -p $GRAALVM_HOME
