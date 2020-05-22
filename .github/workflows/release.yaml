@@ -23,4 +23,4 @@ jobs:
       - name: Install GPG key
         run: echo -e "${{ secrets.GPG_KEY_SECRET }}" | gpg --batch --import --passphrase "$GPG_PASSPHRASE"
       - name: Deploy release
-        run: mvn $MAVEN_CLI_OPTS deploy -Prelease
+        run: mvn $MAVEN_CLI_OPTS deploy -Prelease -DskipTests
