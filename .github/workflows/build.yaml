@@ -15,11 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Test
-        run: |
-          ls --all
-          pwd
       - name: GraalVM
         run: |
+          mkdir -p $GRAALVM_HOME
+          pwd
           curl https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VER/graalvm-ce-$GRAALVM_JAVA-linux-amd64-$GRAALVM_VER.tar.gz -O -J -L && tar xfz graalvm-ce-$GRAALVM_JAVA-linux-amd64-$GRAALVM_VER.tar.gz
           mv graalvm-ce-$GRAALVM_JAVA-$GRAALVM_VER $GRAALVM_HOME
           $GRAALVM_HOME/bin/gu install native-image
