@@ -34,7 +34,7 @@ public class ResourceLoader {
     public static void validateResources(List<Resource> resources) {
         Set<String> version = new HashSet<>();
         for (Resource r : resources) {
-            if (r.version != null && !version.add(r.version)) {
+            if (!r.repeatable && !version.add(r.version)) {
                 throw new IllegalStateException("Found more than one migration with version " + r.version);
             }
         }
