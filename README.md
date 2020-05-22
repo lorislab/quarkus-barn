@@ -1,4 +1,4 @@
-# Quarkus Barn extension
+# Barn Quarkus extension
 
 [![License](https://img.shields.io/github/license/lorislab/quarkus-barn?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/lorislab/quarkus-barn/build/master?logo=github&style=for-the-badge)](https://github.com/lorislab/quarkus-barn/actions?query=workflow%3Abuild)
@@ -6,7 +6,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.lorislab.quarkus/quarkus-barn?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.lorislab.quarkus/quarkus-barn)
 
 
-Database Quarkus migration tool for the reactive database client.
+Barn [Quarkus](https://quarkus.io/) extension is database migration tool for the reactive database client.
 
 The naming convention for migration scripts is as in [Flyway](https://flywaydb.org/documentation/migrations) documentation.
 Supported are `Versioned` and `Repeatable` migration scripts. 
@@ -15,11 +15,11 @@ Supported are `Versioned` and `Repeatable` migration scripts.
 
 Example: `V2__Add_new_table.sql`
 
-* Prefix: V 
+* Prefix: `V`
 * Version: Version with dots separate as many parts as you like.
-* Separator: __ (two underscores)
+* Separator: `__` (two underscores)
 * Description: Underscores or spaces separate the words
-* Suffix: .sql
+* Suffix: `.sql`
 
 #### Repeatable Migrations
 
@@ -28,14 +28,14 @@ new `Versioned` migration to run.
  
 Example: `R__Add_new_table.sql`
 
-* Prefix: R
-* Separator: __ (two underscores)
+* Prefix: `R`
+* Separator: `__` (two underscores)
 * Description: Underscores or spaces separate the words
-* Suffix: .sql
+* Suffix: `.sql`
 
 ### How to use it
 
-Add Maven dependency for your database pool:
+Add maven dependency for your database pool:
 * org.lorislab.quarkus:barn-pg-client
 * org.lorislab.quarkus:barn-mysql-client
 
@@ -84,3 +84,13 @@ Maven dependency
 </dependency>
 ```
 
+## Release
+
+Create a release
+```bash
+mvn semver-release:release-create
+```
+Create a patch branch
+```bash
+mvn semver-release:patch-create -DpatchVersion=x.x.0
+```
