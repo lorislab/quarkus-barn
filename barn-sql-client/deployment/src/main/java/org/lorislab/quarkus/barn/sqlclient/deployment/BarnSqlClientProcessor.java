@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -89,6 +90,10 @@ public class BarnSqlClientProcessor {
         // find migration resources
         List<Resource> resources = getMigrationFiles(location);
         if (!resources.isEmpty()) {
+
+            // validate resources
+            ResourceLoader.validateResources(resources);
+
             // native resource
             String[] paths = resources.stream().map(x -> x.script).toArray(String[]::new);
             resource.produce(new NativeImageResourceBuildItem(paths));
@@ -146,20 +151,10 @@ public class BarnSqlClientProcessor {
         try (final Stream<Path> pathStream = Files.walk(Paths.get(path.toURI()))) {
             return pathStream
                     .filter(Files::isRegularFile)
-                    .filter(f -> f.toString().endsWith(".sql"))
                     .map(it -> {
-                        String p = Paths.get(location, it.getFileName().toString()).toString();
-                        Resource r = ResourceLoader.createFrom(p);
-                        byte[] data;
-                        if (JAR_PROTOCOL.equals(protocol)) {
-                            try {
-                                data = Files.readAllBytes(it);
-                            } catch (IOException ex) {
-                                throw new IllegalStateException(ex);
-                            }
-                        } else {
-                            data = ResourceLoader.loadResourceContent(p);
-                        }
+                        String resourcePath = Paths.get(location, it.getFileName().toString()).toString();
+                        Resource r = ResourceLoader.createFrom(resourcePath);
+                        byte[] data = loadResourceContent(protocol, it, resourcePath);
                         r.checksum = ResourceLoader.checksum(data);
                         return r;
                     })
@@ -167,6 +162,25 @@ public class BarnSqlClientProcessor {
                     .peek(it -> log.debug("Discovered: " + it))
                     .collect(Collectors.toSet());
         }
+    }
+
+    private byte[] loadResourceContent(String protocol, Path it, String resourcePath) {
+        if (JAR_PROTOCOL.equals(protocol)) {
+            try {
+                return Files.readAllBytes(it);
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
+        } else {
+            try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
+                if (in != null) {
+                    return in.readAllBytes();
+                }
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+        return null;
     }
 
     private FileSystem initFileSystem(final URI uri) throws IOException {

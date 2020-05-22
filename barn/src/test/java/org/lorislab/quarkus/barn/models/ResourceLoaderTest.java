@@ -15,12 +15,48 @@
  */
 package org.lorislab.quarkus.barn.models;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResourceLoaderTest {
 
+    private static final Logger log = LoggerFactory.getLogger(ResourceLoaderTest.class);
+
+    private static final String[] VALUES_OK = {
+            "V1__ASD.sql",
+            "V1.1.1.1.1.__ASD.sql",
+            "asd/test/data/V3.4__ASD.sql",
+            "/migration/test/data/V99999999.1__ASD.sql"
+    };
+
+    private static final String[] VALUES_ERROR = {
+            "",
+            null,
+            "V__ASD.sql",
+            "R1.0.0__Test1.sql"
+    };
+
     @Test
     public void createFromTest() {
-
+        for (String item : VALUES_OK) {
+            log.info("Item: {}", item);
+            Resource resource = ResourceLoader.createFrom(item);
+            log.info("Resource: {}", resource);
+            Assertions.assertNotNull(resource);
+        }
+        for (String item : VALUES_ERROR) {
+            Assertions.assertThrows(IllegalArgumentException.class, () -> {
+                log.info("Wrong item: {}", item);
+                try {
+                    ResourceLoader.createFrom(item);
+                } catch (Exception ex) {
+                    log.info("Error: {}", ex.getMessage());
+                    log.info("Error: {}", ex.getCause() != null ? ex.getCause().getMessage() : "");
+                    throw ex;
+                }
+            });
+        }
     }
 }

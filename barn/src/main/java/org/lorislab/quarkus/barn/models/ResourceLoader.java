@@ -18,42 +18,79 @@ package org.lorislab.quarkus.barn.models;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.zip.CRC32;
 
 public class ResourceLoader {
 
+    public static final String RESOURCE_SUFFIX = ".sql";
+
+    public static final String PREFIX_VERSION_MIG = "V";
+
+    public static final String PREFIX_REPEATABLE_MIG = "R";
+
+    public static void validateResources(List<Resource> resources) {
+        Set<String> version = new HashSet<>();
+        for (Resource r : resources) {
+            if (!version.add(r.version)) {
+                throw new IllegalStateException("Found more than one migration with version " + r.version);
+            }
+        }
+    }
+
     public static Resource createFrom(String item) {
-        if (item == null) {
+        if (item == null || item.isBlank()) {
             throw new IllegalArgumentException("The migration item is null!");
         }
-        int i2 = item.lastIndexOf(".sql");
+        int i2 = item.lastIndexOf(RESOURCE_SUFFIX);
         if (i2 == -1) {
-            throw new IllegalArgumentException("The migration item does not ends with '.sql'");
+            throw new IllegalArgumentException("The migration item does not ends with '" + RESOURCE_SUFFIX + "'");
         }
         int i1 = item.lastIndexOf("/");
 
-        Resource result = new Resource();
-        result.script = item;
+        try {
+            Resource result = new Resource();
+            result.script = item;
 
-        String name = item.substring(i1 + 1, i2);
-        String prefix = name.substring(0, 1);
-        if ("V".equals(prefix)) {
-            result.repeatable = false;
-        } else if ("R".equals(prefix)) {
-            result.repeatable = true;
-        } else {
-            throw new IllegalArgumentException("Wrong prefix of the migration. Values: [V, R]. Found: " + prefix);
-        }
+            // remove RESOURCE_SUFFIX
+            String name = item.substring(i1 + 1, i2);
 
-        name = name.substring(1);
-        String[] ver_desc = name.split("__");
-        result.description = ver_desc[1].replaceAll("_", " ");
-        if (result.repeatable) {
-            result.version = null;
-        } else {
+            // prefix
+            String prefix = name.substring(0, 1);
+            if (PREFIX_VERSION_MIG.equals(prefix)) {
+                result.repeatable = false;
+            } else if (PREFIX_REPEATABLE_MIG.equals(prefix)) {
+                result.repeatable = true;
+            } else {
+                throw new IllegalArgumentException("Wrong prefix of the migration script. Values: [V, R]. Found: " + prefix);
+            }
+
+            // remove prefix
+            name = name.substring(1);
+
+            // split to 0: version , 1: description
+            String[] ver_desc = name.split("__");
+            if (ver_desc.length != 2) {
+                throw new IllegalArgumentException("Wrong part for the version and description of the migration script.");
+            }
+            result.description = ver_desc[1].replaceAll("_", " ");
             result.version = ver_desc[0];
+            if (result.repeatable) {
+                if (result.version != null && !result.version.isBlank()) {
+                    throw new IllegalArgumentException("Version is not supported for repeatable migration!");
+                }
+                result.version = null;
+            } else {
+                if (result.version == null || result.version.isBlank()) {
+                    throw new IllegalArgumentException("Version is null or empty for versioned migration!");
+                }
+            }
+            return result;
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Wrong name of migration script. ['V{ver}__{desc}.sql'|'R__{desc}.sql']. Script: " + item, ex);
         }
-        return result;
     }
 
     public static long checksum(byte[] value) {
@@ -65,21 +102,29 @@ public class ResourceLoader {
         return crc.getValue();
     }
 
-    public static byte[] loadResourceContent(String script) {
+    public static byte[] loadResourceContent(String path) {
         try {
-            String tmp = script;
+            String tmp = path;
             if (!tmp.startsWith("/")) {
                 tmp = "/" + tmp;
             }
-            try (InputStream in = ResourceLoader.class.getResourceAsStream(tmp)) {
+            try (InputStream in = createResourceStream(tmp)) {
                 if (in != null) {
                     return in.readAllBytes();
                 }
                 return null;
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Error read the migration resource " + script);
+            throw new IllegalStateException("Error read the migration resource " + path);
         }
+    }
+
+    private static InputStream createResourceStream(String path) {
+        InputStream in = ResourceLoader.class.getResourceAsStream(path);
+        if (in == null) {
+            in = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+        }
+        return in;
     }
 
     public static String loadResource(String script) {
