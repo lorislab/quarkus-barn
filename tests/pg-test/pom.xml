@@ -82,9 +82,6 @@
                                 <goals>
                                     <goal>native-image</goal>
                                 </goals>
-                                <configuration>
-                                    <enableAllSecurityServices>true</enableAllSecurityServices>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
