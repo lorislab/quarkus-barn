@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/lorislab/quarkus-barn?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/lorislab/quarkus-barn/build/master?logo=github&style=for-the-badge)](https://github.com/lorislab/quarkus-barn/actions?query=workflow%3Abuild)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/lorislab/quarkus-barn?logo=github&style=for-the-badge)](https://github.com/lorislab/quarkus-barn/releases/latest)
-[![Maven Central](https://img.shields.io/maven-central/v/org.lorislab.quarkus/quarkus-barn?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.lorislab.quarkus/quarkus-barn)
+[![Maven Central](https://img.shields.io/maven-central/v/org.lorislab.quarkus/barn?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.lorislab.quarkus/barn)
 
 
 Barn [Quarkus](https://quarkus.io/) extension is database migration tool for the reactive database client.
