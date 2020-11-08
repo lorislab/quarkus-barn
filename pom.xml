@@ -49,7 +49,7 @@
     </modules>
 
     <properties>
-        <quarkus.version>1.5.0.CR1</quarkus.version>
+        <quarkus.version>1.9.2.Final</quarkus.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -60,7 +60,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-bom-deployment</artifactId>
+                <artifactId>quarkus-bom</artifactId>
                 <version>${quarkus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -68,7 +68,7 @@
             <dependency>
                 <groupId>org.lorislab.quarkus</groupId>
                 <artifactId>quarkus-testcontainers</artifactId>
-                <version>0.10.0</version>
+                <version>0.12.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

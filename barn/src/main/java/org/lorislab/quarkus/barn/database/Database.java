@@ -261,7 +261,7 @@ public abstract class Database {
         m.checksum = row.getLong("checksum");
         m.installedBy = row.getString("installed_by");
         m.installedOn = row.getLocalDateTime("installed_on");
-        m.time = row.getLong("time");
+        m.time = row.getLong("execution_time");
         m.success = row.getBoolean("success");
         return m;
     }
