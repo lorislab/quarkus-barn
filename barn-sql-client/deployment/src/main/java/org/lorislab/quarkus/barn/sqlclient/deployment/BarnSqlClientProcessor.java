@@ -61,11 +61,6 @@ public class BarnSqlClientProcessor {
     BarnBuildTimeConfig config;
 
     @BuildStep
-    CapabilityBuildItem capability() {
-        return new CapabilityBuildItem(BARN_CLIENT);
-    }
-
-    @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     ServiceStartBuildItem configureRuntimeProperties(BarnRecorder recorder, BarnRuntimeConfig runtimeConfig,
                                           BarnPoolBuildItem poolBuildItem, BeanContainerBuildItem beanContainer) {

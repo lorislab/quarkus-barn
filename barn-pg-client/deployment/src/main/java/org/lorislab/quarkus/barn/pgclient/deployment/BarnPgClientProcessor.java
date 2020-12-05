@@ -15,12 +15,11 @@
  */
 package org.lorislab.quarkus.barn.pgclient.deployment;
 
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.builditem.CapabilityBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
-import io.quarkus.reactive.pg.client.deployment.PgPoolBuildItem;
 import io.vertx.mutiny.pgclient.PgPool;
 import org.lorislab.quarkus.barn.sqlclient.deployment.BarnPoolBuildItem;
 
@@ -29,19 +28,19 @@ public class BarnPgClientProcessor {
     public static String BARN_PG_CLIENT = "barn-pg-client";
 
     @BuildStep
-    CapabilityBuildItem capability() {
-        return new CapabilityBuildItem(BARN_PG_CLIENT);
-    }
-
-    @BuildStep
     void build(BuildProducer<FeatureBuildItem> feature) {
         feature.produce(new FeatureBuildItem(BARN_PG_CLIENT));
     }
 
     @BuildStep
-    ServiceStartBuildItem configureRuntimeProperties(PgPoolBuildItem poolBuildItem, BuildProducer<BarnPoolBuildItem> pool) {
+    ServiceStartBuildItem configureRuntimeProperties(BuildProducer<BarnPoolBuildItem> pool) {
         pool.produce(new BarnPoolBuildItem(PgPool.class));
         return new ServiceStartBuildItem(BARN_PG_CLIENT);
+    }
+
+    @BuildStep
+    UnremovableBeanBuildItem setup() {
+        return UnremovableBeanBuildItem.beanClassNames(PgPool.class.getName());
     }
 
 }
