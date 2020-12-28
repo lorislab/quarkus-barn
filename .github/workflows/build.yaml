@@ -3,37 +3,34 @@ on:
   push:
     branches:
       - '**'
-env:
-  GRAALVM_VER: 20.1.0
-  GRAALVM_JAVA: java11
-  GRAALVM_HOME: .graalvm
-  JAVA_HOME: .graalvm
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: GraalVM
-        run: |
-          curl https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VER/graalvm-ce-$GRAALVM_JAVA-linux-amd64-$GRAALVM_VER.tar.gz -O -J -L && tar xfz graalvm-ce-$GRAALVM_JAVA-linux-amd64-$GRAALVM_VER.tar.gz
-          mv graalvm-ce-$GRAALVM_JAVA-$GRAALVM_VER $GRAALVM_HOME
-          $GRAALVM_HOME/bin/gu install native-image
-          rm *.tar.gz
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Build project
-        run: mvn clean install
-      - name: Native tests
+      - name: setup-graalvm-ce
+        uses: rinx/setup-graalvm-ce@v0.0.5
+        with:
+          graalvm-version: "20.2.0"
+          java-version: "java11"
+          native-image: "true"
+      - name: Build & Unit tests
+        run: mvn --batch-mode clean package
+      - name: Native build
+        run: mvn --batch-mode package -DskipTests -Dnative
+      - name: Integration tests
         run: |
-          mvn clean package -DskipTests -Dnative -pl tests -amd
+          mvn --batch-mode clean package -DskipTests -Dnative -pl tests -amd
           cd tests/pg-test
           docker build -t $(echo "$PWD" | sed 's!.*/!!') -f src/main/docker/Dockerfile .
           cd ../mysql-test
           docker build -t $(echo "$PWD" | sed 's!.*/!!') -f src/main/docker/Dockerfile .
           cd ../..
-          mvn failsafe:integration-test failsafe:verify -pl tests -amd
+          mvn --batch-mode failsafe:integration-test failsafe:verify -pl tests -amd

@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: daily
+      time: "23:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+    allow:
+      - dependency-name: io.quarkus:quarkus-bom
+      - dependency-name: org.lorislab.quarkus:quarkus-testcontainers
+      - dependency-name: org.slf4j:slf4j-simple
+    rebase-strategy: disabled
