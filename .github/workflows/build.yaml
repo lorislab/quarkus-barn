@@ -22,9 +22,7 @@ jobs:
           java-version: "java11"
           native-image: "true"
       - name: Build & Unit tests
-        run: mvn --batch-mode clean package
-      - name: Native build
-        run: mvn --batch-mode package -DskipTests -Dnative
+        run: mvn --batch-mode clean install
       - name: Integration tests
         run: |
           mvn --batch-mode clean package -DskipTests -Dnative -pl tests -amd

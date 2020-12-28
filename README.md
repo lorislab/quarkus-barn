@@ -6,9 +6,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.lorislab.quarkus/barn?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.lorislab.quarkus/barn)
 
 
-Barn [Quarkus](https://quarkus.io/) extension is database migration tool for the reactive database client.
-
-The naming convention for migration scripts is as in [Flyway](https://flywaydb.org/documentation/migrations) documentation.
+Barn [Quarkus](https://quarkus.io/) extension is database migration tool for the reactive database client. The naming convention for migration scripts is as in [Flyway](https://flywaydb.org/documentation/migrations) documentation.
 Supported are `Versioned` and `Repeatable` migration scripts. 
  
 #### Versioned Migrations
